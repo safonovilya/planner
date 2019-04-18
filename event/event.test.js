@@ -1,5 +1,5 @@
 const assert = require('assert');
-const db = require('../../db');
+const db = require('../db');
 const Event = require('mongoose').model('Event');
 const EventTemplate = require('mongoose').model('EventTemplate');
 const EventCore = require('./event.core.js');

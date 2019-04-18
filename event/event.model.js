@@ -1,73 +1,7 @@
-// {
-//     "status": string,
-//     "summary": string,
-//     "location": string,
-//     "creatorId": string,
-//     "organizerId" string,
-//     "start": {
-//       "date": date,
-//       "dateTime": datetime,
-//       "timeZone": string
-//     },
-//     "end": {
-//       "date": date,
-//       "dateTime": datetime,
-//       "timeZone": string
-//     },
-//     "endTimeUnspecified": boolean,
-//     "recurrence": [
-//       string
-//     ],
-//     "recurringEventId": string,
-//     "originalStartTime": {
-//       "date": date,
-//       "dateTime": datetime,
-//       "timeZone": string
-//     },
-//     "sequence": integer,
-//     "attendees": [
-//       {
-//         "id": string,
-//         "email": string,
-//         "displayName": string,
-//         "resource": boolean,
-//         "comment": string,
-//         "additionalGuests": integer
-//       }
-//     ],
-//     "reminders": {
-//       "useDefault": boolean,
-//       "overrides": [
-//         {
-//           "method": string,
-//           "minutes": integer
-//         }
-//       ]
-//     },
-//     "source": {
-//       "url": string,
-//       "title": string
-//     },
-//     "attachments": [
-//       {
-//         "fileUrl": string,
-//         "title": string,
-//         "mimeType": string,
-//         "iconLink": string,
-//         "fileId": string
-//       }
-//     ]
-//   }
-
 const mongoose = require('mongoose');
-const { Schema } = mongoose;
-const eventSchema = new Schema({
-  organizerId: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-  },
-  start: Date,
-  end: Date,
+const eventSchema = new mongoose.Schema({
+  dateTime: Date,
+  duration: Date,
   attendees: [
     // metadata
     mongoose.SchemaTypes.Mixed,
@@ -80,27 +14,42 @@ const eventSchema = new Schema({
     //   additionalGuests: integer,
     // },
   ],
-  reminders: {
-    useDefault: Boolean,
-    overrides: [
-      {
-        method: String,
-        minutes: Number,
-      },
-    ],
-  },
 });
 const eventTemplate = new mongoose.Schema({
   organizerId: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Calendar',
   },
   start: Date,
   end: Date,
   title: String,
   status: String,
-  location: String,
+  repeatable: mongoose.SchemaTypes.Mixed,
+  // location: String,
 });
 
 mongoose.model('Event', eventSchema);
 mongoose.model('EventTemplate', eventTemplate);
+
+/*
+const EventTemplate = {
+  // start
+  // end
+
+  // repeatable
+  repeatable : {
+    // sec {0-59}
+    // min {0-59}
+    // hour {0-23}
+    // week {0-6}
+    week: {
+      1: true,
+      3: true,
+    },
+    // months {0-11}
+    // year
+  },
+
+  status: ENUM(['active', 'inactive', 'deleted'])
+}
+*/

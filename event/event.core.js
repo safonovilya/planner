@@ -1,10 +1,17 @@
 const EventTemplate = require('mongoose').model('EventTemplate');
 /**
  * Class Event
- * create(data, title, options)
- * getList(start, end)
+ *
+ createEvent(payload) //<Event>
+ updateEvent (id, payload) //<Event>
+ getEvent(id) //<Event>
+ getEvents({
+     range:(start-end),
+     status:('active'|'inactive'|'deleted'),
+     owner:(CalendarID)
+   }) // [<Event>]
+ deleteEvent(EventID) // ok|<Error>
  */
-
 class EventCore {
 
   /**
@@ -30,8 +37,6 @@ class EventCore {
     return events
   }
 
-
-
   /**
    * get RepeatEvent in range
    * get Events from db by RepeatEventID
@@ -42,7 +47,6 @@ class EventCore {
    * update close old ... create new
    *
    */
-
 
 }
 
