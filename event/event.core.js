@@ -1,26 +1,20 @@
 const EventTemplate = require('mongoose').model('EventTemplate');
+const unwind = require('lodash-unwind')();
+
 /**
  * Class Event
  *
- createEvent(payload) //<Event>
- updateEvent (id, payload) //<Event>
- getEvent(id) //<Event>
- getEvents({
-     range:(start-end),
-     status:('active'|'inactive'|'deleted'),
-     owner:(CalendarID)
-   }) // [<Event>]
- deleteEvent(EventID) // ok|<Error>
  */
 class EventCore {
 
   /**
-   * Create EventTemplate and save to DB
+   * Create Event
    * @param payload
-   * @returns {Promise<Model>}
+   * @returns {Promise<Event>}
    */
   static async create(payload) {
-    const { title, organizerId, start, end, status, location } = payload || {};
+    const { title, organizerId, start, end, status, location, repeatable } =
+      payload || {};
     const event = new EventTemplate({
       title,
       organizerId,
@@ -28,26 +22,55 @@ class EventCore {
       end,
       status,
       location,
+      repeatable,
     });
     await event.save();
     return event;
   }
-  static async getList() {
-    const events = await EventTemplate.find();
-    return events
+
+  /**
+   * Get Event
+   * @returns {Promise<Event>}
+   */
+  static async getEvent(id) {}
+
+  /**
+   *
+   * @param start Date
+   * @param end Date
+   * @param owner ID
+   * @param status 'active'|'inactive'|'deleted'
+   * @returns {Promise<Event>}
+   */
+  static async getList(filter) {
+    const { start, end, owner } = filter || {};
+    const eventTemplates = await EventTemplate.find().lean();
+    // const events = await Event.find();
+
+    const events = unwind(eventTemplates, 'repeatable.hour', {
+      ignoreNonArray: false,
+    });
+
+    return events;
   }
 
   /**
-   * get RepeatEvent in range
-   * get Events from db by RepeatEventID
-   * merge generated list by ReapeatEvents and Events from DB
+   * Soft delete
+   * @param eventID
+   * @returns {Promise<ok|Error>}
+   */
+  static async deleteEvent(eventID) {
+    //todo: mark event like deleted
+  }
+
+  /**
+   * updateEvent (id, payload) //<Event>
    */
 
   /**
-   * update close old ... create new
-   *
+   * update immutable field for event
+   * close old ... create new with copy other fields
    */
-
 }
 
 module.exports = EventCore;

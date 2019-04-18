@@ -11,8 +11,6 @@ describe('Create Event Model Object', () => {
       done();
     } catch (e) {
       done(e);
-      console.log('asda ');
-
     }
   });
 
@@ -35,7 +33,7 @@ describe('Create EventTemplate Model Object', () => {
       EventTemplate.collection.drop();
       done();
     } catch (e) {
-      console.log('e');
+      done(e);
     }
   });
 
@@ -55,11 +53,10 @@ describe('Create EventTemplate Model Object', () => {
 describe('Core Event Class', () => {
   before(async () => {
     try {
-      // await EventTemplate.collection.drop();
-      // await Event.collection.drop();
+      await EventTemplate.collection.drop();
+      await Event.collection.drop();
       return null;
     } catch (e) {
-      console.log('asda ');
       return -1;
     }
   });
@@ -74,6 +71,29 @@ describe('Core Event Class', () => {
   it('get list Events', async () => {
     const events = await EventCore.getList();
     assert.equal(events.length, 1);
+    return null;
+  });
+
+  it('Create Repeatable Event every hour', async () => {
+    const start = new Date();
+    const end = new Date();
+    end.setDate(start.getDate() + 1);
+    const hour = [...Array(24).keys()].map(el => {
+      const o = {};
+      o[`${el}`] = true;
+      return o;
+    });
+
+    const event = await EventCore.create({
+      title: 'every hour',
+      start,
+      end,
+      repeatable: {
+        hour,
+      },
+    });
+    const events = await EventCore.getList();
+    assert.equal(events.length, 25);
     return null;
   });
 });
