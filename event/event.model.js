@@ -1,21 +1,16 @@
 const mongoose = require('mongoose');
+
 const eventSchema = new mongoose.Schema({
-  dateTime: Date,
-  duration: Date,
-  attendees: [
-    // metadata
-    mongoose.SchemaTypes.Mixed,
-    // {
-    //   id: string,
-    //   email: string,
-    //   displayName: string,
-    //   resource: boolean,
-    //   comment: string,
-    //   additionalGuests: integer,
-    // },
-  ],
+  startDateTime: Date,
+  endDateTime: Date,
+  attendees: [mongoose.SchemaTypes.Mixed],
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'EventTemplate',
+  },
 });
-const eventTemplate = new mongoose.Schema({
+
+const eventTemplateSchema = new mongoose.Schema({
   organizerId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Calendar',
@@ -23,33 +18,19 @@ const eventTemplate = new mongoose.Schema({
   start: Date,
   end: Date,
   title: String,
-  status: String,
+  status: String, //ENUM(['active', 'inactive', 'deleted'])
+
+  /** sec {0-59}
+      min {0-59}
+      hour {0-23}
+      week {0-6}
+      months {0-11}
+      year
+   */
   repeatable: mongoose.SchemaTypes.Mixed,
+
   // location: String,
 });
 
 mongoose.model('Event', eventSchema);
-mongoose.model('EventTemplate', eventTemplate);
-
-/*
-const EventTemplate = {
-  // start
-  // end
-
-  // repeatable
-  repeatable : {
-    // sec {0-59}
-    // min {0-59}
-    // hour {0-23}
-    // week {0-6}
-    week: {
-      1: true,
-      3: true,
-    },
-    // months {0-11}
-    // year
-  },
-
-  status: ENUM(['active', 'inactive', 'deleted'])
-}
-*/
+mongoose.model('EventTemplate', eventTemplateSchema);

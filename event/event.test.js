@@ -92,8 +92,13 @@ describe('Core Event Class', () => {
         hour,
       },
     });
+    console.log(event);
     const events = await EventCore.getList();
     assert.equal(events.length, 25);
+
+    const eventTemplate = await EventTemplate.find({_id:event._id});
+    console.log(eventTemplate);
+    assert.equal(eventTemplate.repeatable.length, 1);
     return null;
   });
 });
