@@ -17,6 +17,8 @@ const eventTemplateSchema = new mongoose.Schema({
   },
   start: Date,
   end: Date,
+  startTime: Date,
+  endTime: Date,
   title: String,
   status: String, //ENUM(['active', 'inactive', 'deleted'])
 

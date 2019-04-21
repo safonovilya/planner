@@ -1,6 +1,28 @@
 const EventTemplateModel = require('mongoose').model('EventTemplate');
 const EventModel = require('mongoose').model('Event');
 const unwind = require('lodash-unwind')();
+const _ = require('lodash');
+
+/**
+ * @param eventTemplate <EventTemplate>
+ * @returns {Array<EventTemplate>|<EventTemplate>}
+ */
+function repeatableUnwind(eventTemplate) {
+  if (eventTemplate.repeatable) {
+    const keys = Object.keys(eventTemplate.repeatable);
+
+    return keys.reduce(
+      (acc, el) => {
+        return unwind(acc, `repeatable.${el}`, {
+          ignoreNonArray: false,
+        });
+      },
+      [eventTemplate],
+    );
+  } else {
+    return eventTemplate;
+  }
+}
 
 /**
  * Class Event
@@ -10,6 +32,12 @@ class EventCore {
   /**
    * Create Event
    * @param payload
+   * @param payload.title String
+   * @param payload.status String active|deleted|inactive
+   * @param payload.start Date
+   * @param payload.end Date
+   * @param payload.organizerId ObjectID
+   * @param payload.repeatable Object
    * @returns {Promise<Event>}
    */
   static async create(payload) {
@@ -24,8 +52,7 @@ class EventCore {
       location,
       repeatable,
     });
-    await event.save();
-    return event;
+    return await event.save();
   }
 
   /**
@@ -33,33 +60,33 @@ class EventCore {
    * @returns {Promise<Event>}
    */
   static async getEvent(id) {
-
     // find by id
     // build class Event
-
   }
 
   /**
    *
-   * @param start Date
-   * @param end Date
-   * @param owner ID
-   * @param status 'active'|'inactive'|'deleted'
+   * @param filter.start Date Required
+   * @param filter.end Date Required
+   * @param filter.owner ID Required
+   * @param filter.status 'active'|'inactive'|'deleted'
    * @returns {Promise<Event>}
    */
   static async getList(filter) {
     const { start, end, owner } = filter || {};
-    const eventTemplates = await EventTemplateModel.find().lean();
+    const query = {
+      start: { $gte: start },
+      end: { $lte: end },
+      owner,
+    };
+    const eventTemplates = await EventTemplateModel.find(query).lean();
     // const events = await Event.find();
 
-    const events = unwind(eventTemplates, 'repeatable.hour', {
-      ignoreNonArray: false,
-    });
-    // todo set date based on repeatable
-
-    events.forEach(el => {
-      console.log(el);
-    });
+    const events = _.flatten(
+      eventTemplates.map(eventTemplate => {
+        return repeatableUnwind(eventTemplate);
+      }),
+    );
 
     // const hashMap = {
     //   `${eventTemplateID}${exectDateTime}` = EventTemplate
@@ -69,7 +96,10 @@ class EventCore {
 
     //eventTemplates -> generatedEvents match Events by  eventTemplateID + exact datetime
 
-    return events;
+    return events.map(event => {
+      // console.log(el);
+      return new Event(event);
+    });
   }
 
   /**
@@ -127,37 +157,39 @@ class Event {
         organizerId,
         title,
         status,
-        _id
+        _id,
       } = payload;
+      this.startDateTime = startDateTime;
+      this._id = _id;
     }
 
-    this.startDateTime = startDateTime;
-    this._id = _id;
     //...
   }
 
-
-  async save(){
+  async save() {
     let event;
 
-    if (this._id){
-      event = await EventModel.find()
+    if (this._id) {
+      event = await EventModel.find();
     } else {
-
       event = await new EventModel({
         //...
-        meta
-      }).save()
+        meta,
+      }).save();
     }
     return event;
   }
 
   format() {
     return {
-      startDateTime: startDateTime.format('YYYY-MM-DD')
+      startDateTime: startDateTime.format('YYYY-MM-DD'),
       //...
-    }
+    };
   }
 }
 
-module.exports = EventCore;
+module.exports = {
+  EventCore,
+  Event,
+  EventTemplate,
+};
