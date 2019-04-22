@@ -16,7 +16,8 @@ getEvents({
 deleteEvent(EventID) // ok|<Error>
 ```
 
-TODO:
-- Create models based on 
+### Issue
+sort out how manage access by owner|creater|accessList field 
+
+### Schema
 ![Schema](./event/schema.png)
-- implement actions

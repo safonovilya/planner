@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 
 const eventSchema = new mongoose.Schema({
-  startDateTime: Date,
-  endDateTime: Date,
+  startDateTime: Date, // 17:50
+  endDateTime: Date, // 19:40
   attendees: [mongoose.SchemaTypes.Mixed],
   owner: {
     type: mongoose.Schema.Types.ObjectId,
@@ -15,19 +15,18 @@ const eventTemplateSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Calendar',
   },
-  start: Date,
-  end: Date,
-  startTime: Date,
-  endTime: Date,
+  startDateTime: Date, //2019-04-15 17:50
+  endDateTime: Date, //2020-04-15 19:40
   title: String,
   status: String, //ENUM(['active', 'inactive', 'deleted'])
 
-  /** sec {0-59}
+  /** sec {0-59} ???
       min {0-59}
-      hour {0-23}
-      week {0-6}
-      months {0-11}
-      year
+      hour {0-23} // MVP
+      dayOfWeek {0-6} // MVP
+      weekOfMonths {0-5} // MVP
+      dayOfMonths {0-28|29|30|31} // MVP
+      month {0-11} // MVP
    */
   repeatable: mongoose.SchemaTypes.Mixed,
 

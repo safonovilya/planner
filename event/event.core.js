@@ -34,20 +34,20 @@ class EventCore {
    * @param payload
    * @param payload.title String
    * @param payload.status String active|deleted|inactive
-   * @param payload.start Date
-   * @param payload.end Date
+   * @param payload.startDateTime Date
+   * @param payload.endDateTime Date
    * @param payload.organizerId ObjectID
    * @param payload.repeatable Object
    * @returns {Promise<Event>}
    */
   static async create(payload) {
-    const { title, organizerId, start, end, status, location, repeatable } =
+    const { title, organizerId, startDateTime, endDateTime, status, location, repeatable } =
       payload || {};
     const event = new EventTemplateModel({
       title,
       organizerId,
-      start,
-      end,
+      startDateTime,
+      endDateTime,
       status,
       location,
       repeatable,
@@ -66,17 +66,17 @@ class EventCore {
 
   /**
    *
-   * @param filter.start Date Required
-   * @param filter.end Date Required
+   * @param filter.startDateTime Date Required
+   * @param filter.endDateTime Date Required
    * @param filter.owner ID Required
    * @param filter.status 'active'|'inactive'|'deleted'
    * @returns {Promise<Event>}
    */
   static async getList(filter) {
-    const { start, end, owner } = filter || {};
+    const { startDateTime, endDateTime, owner } = filter || {};
     const query = {
-      start: { $gte: start },
-      end: { $lte: end },
+      startDateTime: { $gte: startDateTime },
+      endDateTime: { $lte: endDateTime },
       owner,
     };
     const eventTemplates = await EventTemplateModel.find(query).lean();
