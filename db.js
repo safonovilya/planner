@@ -1,4 +1,3 @@
-const assert = require('assert');
 const mongoose = require('mongoose');
 const Event = require('./src/event/event.model');
 
@@ -7,7 +6,9 @@ const mongoURL =
 
 const dbName = process.env.DB_NAME;
 
-mongoose.connect(mongoURL, { useNewUrlParser: true });
+mongoose.connect(mongoURL, { useNewUrlParser: true }).catch(e => {
+  console.error(e);
+});
 
 let db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
