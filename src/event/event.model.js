@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 
 const eventSchema = new mongoose.Schema({
-  startDateTime: Date, // 17:50
-  endDateTime: Date, // 19:40
+  startDateTime: Date, // 2019-04-08 17:50
+  endDateTime: Date, // 2019-04-08 19:40
   attendees: [mongoose.SchemaTypes.Mixed],
   owner: {
     type: mongoose.Schema.Types.ObjectId,
@@ -15,8 +15,11 @@ const eventTemplateSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Calendar',
   },
-  startDateTime: Date, //2019-04-15 17:50
-  endDateTime: Date, //2020-04-15 19:40
+  startTime: Date, // 17:50
+  endTime: Date, // 19:40
+  startDate: Date, // 2019-04-15
+  endDate: Date, // 2020-04-15
+  duration: String, // moment.duration('PT-1H50M')
   title: String,
   status: {
     type: String,
@@ -33,7 +36,7 @@ const eventTemplateSchema = new mongoose.Schema({
    */
   repeatable: mongoose.SchemaTypes.Mixed,
 
-  // location: String,
+  location: String,
 });
 
 mongoose.model('Event', eventSchema);

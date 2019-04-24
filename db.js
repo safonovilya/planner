@@ -1,10 +1,9 @@
-const
-  assert = require('assert'),
-  mongoose = require('mongoose'),
-  Event = require('./src/event/event.model');
+const assert = require('assert');
+const mongoose = require('mongoose');
+const Event = require('./src/event/event.model');
 
-// assert.notEqual(process.env.MONGODB_URL, undefined);
-const mongoURL = process.env.MONGODB_URL || `mongodb://127.0.0.1:27017/${process.env.DB_NAME}`;
+const mongoURL =
+  process.env.MONGODB_URL || `mongodb://127.0.0.1:27017/${process.env.DB_NAME}`;
 
 const dbName = process.env.DB_NAME;
 
