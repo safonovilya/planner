@@ -74,7 +74,7 @@ class EventCore {
    * @returns {Promise<Event>}
    */
   static async getList(filter) {
-    const { startDateTime, endDateTime, owner } = filter || {};
+    const { startDateTime, endDateTime, owner, status } = filter || {};
 
     //TODO: max diff in startDateTime, endDateTime 3 months
 
@@ -83,6 +83,8 @@ class EventCore {
       endDateTime: { $lte: endDateTime },
       owner,
     };
+    status ? query.status = status : null;
+
     const eventTemplates = await EventTemplateModel.find(query).lean();
     // const events = await Event.find();
 

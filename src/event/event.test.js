@@ -1,15 +1,21 @@
+require('dotenv').config();
 const assert = require('assert');
 const expect = require('expect.js');
-const db = require('../db');
+const db = require('../../db');
 const { ObjectId } = require('mongoose').Types;
 const EventModel = require('mongoose').model('Event');
 const EventTemplateModel = require('mongoose').model('EventTemplate');
 const { EventCore, Event, EventTemplate } = require('./event.core.js');
+const moment = require('moment');
+moment().format();
+
+let today = new Date(),
+  tomorrow = today.setDate(today.getDate() + 1);
 
 const mockEventTemplate = {
   organizerId: new ObjectId('5cb637a4d591c25e1ae24e33'),
-  startDateTime: new Date(),
-  endDateTime: new Date(),
+  startDateTime: today,
+  endDateTime: tomorrow,
   title: 'Mock Object',
   status: 'active',
   repeatable: {
@@ -23,8 +29,8 @@ const mockEventTemplate = {
 };
 const mockEvent = {
   organizerId: new ObjectId('5cb637a4d591c25e1ae24e33'),
-  startDateTime: new Date(),
-  endDateTime: new Date(),
+  startDateTime: today,
+  endDateTime: tomorrow,
   title: 'Mock Object',
   status: 'active',
   repeatable: {
@@ -130,16 +136,15 @@ describe('Core Event Class', () => {
   });
 
   it('Create Repeatable Event every hour', async () => {
-    const start = new Date();
-    const end = new Date();
-    end.setDate(start.getDate() + 1);
+    const start = today;
+    const end = tomorrow;
     const hour = [...Array(24).keys()].map(el => {
       const o = {};
       o[`${el}`] = true;
       return o;
     });
 
-    const event = await EventCore.create({
+    await EventCore.create({
       title: 'every hour',
       startDateTime: start,
       endDateTime: end,
