@@ -24,7 +24,7 @@ sort out how manage access by owner|creater|accessList field
 
 ### Schema
 
-![Schema](./event/schema.png)
+![Schema](./src/event/schema.png)
 
 ### Cases
 
