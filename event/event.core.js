@@ -38,7 +38,7 @@ class EventCore {
    * @param payload.endDateTime Date
    * @param payload.organizerId ObjectID
    * @param payload.repeatable Object
-   * @returns {Promise<Event>}
+   * @returns {true|Error}
    */
   static async create(payload) {
     const { title, organizerId, startDateTime, endDateTime, status, location, repeatable } =
@@ -52,7 +52,8 @@ class EventCore {
       location,
       repeatable,
     });
-    return await event.save();
+    await event.save();
+    return true;
   }
 
   /**
@@ -74,6 +75,9 @@ class EventCore {
    */
   static async getList(filter) {
     const { startDateTime, endDateTime, owner } = filter || {};
+
+    //TODO: max diff in startDateTime, endDateTime 3 months
+
     const query = {
       startDateTime: { $gte: startDateTime },
       endDateTime: { $lte: endDateTime },

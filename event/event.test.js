@@ -8,8 +8,8 @@ const { EventCore, Event, EventTemplate } = require('./event.core.js');
 
 const mockEventTemplate = {
   organizerId: new ObjectId('5cb637a4d591c25e1ae24e33'),
-  start: new Date(),
-  end: new Date(),
+  startDateTime: new Date(),
+  endDateTime: new Date(),
   title: 'Mock Object',
   status: 'active',
   repeatable: {
@@ -23,8 +23,8 @@ const mockEventTemplate = {
 };
 const mockEvent = {
   organizerId: new ObjectId('5cb637a4d591c25e1ae24e33'),
-  start: new Date(),
-  end: new Date(),
+  startDateTime: new Date(),
+  endDateTime: new Date(),
   title: 'Mock Object',
   status: 'active',
   repeatable: {
@@ -71,8 +71,8 @@ describe('Create EventTemplate Model Object', () => {
   it('new EventTemplate', () => {
     const event = new EventTemplateModel(mockEventTemplate);
     return event.save().then(result => {
-      expect(result.toObject()).to.have.property('start');
-      expect(result.toObject()).to.have.property('end');
+      expect(result.toObject()).to.have.property('startDateTime');
+      expect(result.toObject()).to.have.property('endDateTime');
       expect(result.toObject()).to.have.property(
         'title',
         mockEventTemplate.title,
@@ -89,8 +89,8 @@ describe('Create EventTemplate Model Object', () => {
     const events = await EventTemplateModel.find();
     assert.equal(events.length, 1);
     const event = events[0];
-    expect(event.toObject()).to.have.property('start');
-    expect(event.toObject()).to.have.property('end');
+    expect(event.toObject()).to.have.property('startDateTime');
+    expect(event.toObject()).to.have.property('endDateTime');
     expect(event.toObject()).to.have.property('title', mockEventTemplate.title);
     expect(event.toObject()).to.have.property(
       'status',
@@ -141,16 +141,19 @@ describe('Core Event Class', () => {
 
     const event = await EventCore.create({
       title: 'every hour',
-      start,
-      end,
+      startDateTime: start,
+      endDateTime: end,
       repeatable: {
         hour,
       },
     });
-    const events = await EventCore.getList({ start, end });
+    const events = await EventCore.getList({
+      startDateTime: start,
+      endDateTime: end,
+    });
     assert.equal(events.length, 24);
 
-    const eventTemplate = await EventTemplateModel.findOne({ _id: event._id });
+    const eventTemplate = await EventTemplateModel.findOne({ title: 'every hour' });
     assert.equal(eventTemplate.repeatable.hour.length, 24);
 
     return null;
