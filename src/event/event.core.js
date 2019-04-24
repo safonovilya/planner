@@ -34,20 +34,33 @@ class EventCore {
    * @param payload
    * @param payload.title String
    * @param payload.status String active|deleted|inactive
-   * @param payload.startDateTime Date
-   * @param payload.endDateTime Date
+   * @param payload.startDate Date
+   * @param payload.startTime Number
+   * @param payload.endDate Date
+   * @param payload.endTime Number
    * @param payload.organizerId ObjectID
    * @param payload.repeatable Object
    * @returns {true|Error}
    */
   static async create(payload) {
-    const { title, organizerId, startDateTime, endDateTime, status, location, repeatable } =
-      payload || {};
+    const {
+      title,
+      organizerId,
+      startTime,
+      endTime,
+      startDate,
+      endDate,
+      status,
+      location,
+      repeatable,
+    } = payload || {};
     const event = new EventTemplateModel({
       title,
       organizerId,
-      startDateTime,
-      endDateTime,
+      startTime,
+      endTime,
+      startDate,
+      endDate,
       status,
       location,
       repeatable,
@@ -74,16 +87,16 @@ class EventCore {
    * @returns {Promise<Event>}
    */
   static async getList(filter) {
-    const { startDateTime, endDateTime, owner, status } = filter || {};
+    const { startDate, endDate, owner, status } = filter || {};
 
-    //TODO: max diff in startDateTime, endDateTime 3 months
+    //TODO: max diff in startDate, endDate 3 months
 
     const query = {
-      startDateTime: { $gte: startDateTime },
-      endDateTime: { $lte: endDateTime },
+      startDate: { $gte: startDate },
+      endDate: { $lte: endDate },
       owner,
     };
-    status ? query.status = status : null;
+    status ? (query.status = status) : null;
 
     const eventTemplates = await EventTemplateModel.find(query).lean();
     // const events = await Event.find();

@@ -8,6 +8,8 @@ const eventSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'EventTemplate',
   },
+}, {
+  timestamps: true
 });
 
 const eventTemplateSchema = new mongoose.Schema({
@@ -15,8 +17,8 @@ const eventTemplateSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Calendar',
   },
-  startTime: Date, // 17:50
-  endTime: Date, // 19:40
+  startTime: Number, // 17:50 = 17*60 + 50
+  endTime: Number, // 19:40 = 19*60 + 40
   startDate: Date, // 2019-04-15
   endDate: Date, // 2020-04-15
   duration: String, // moment.duration('PT-1H50M')
@@ -37,6 +39,8 @@ const eventTemplateSchema = new mongoose.Schema({
   repeatable: mongoose.SchemaTypes.Mixed,
 
   location: String,
+}, {
+  timestamps: true
 });
 
 mongoose.model('Event', eventSchema);
