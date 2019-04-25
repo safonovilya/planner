@@ -3,6 +3,8 @@ const EventModel = require('mongoose').model('Event');
 const unwind = require('lodash-unwind')();
 const _ = require('lodash');
 
+const DAY_FORMAT = require('../config/constants').DAY_FORMAT;
+
 /**
  * @param eventTemplate <EventTemplate>
  * @returns {Array<EventTemplate>|<EventTemplate>}
@@ -169,40 +171,31 @@ class Event {
       // endDateTime: Date,
       // by repeatable and start end time
     } else {
-      const {
-        startDateTime,
-        endDateTime,
-        attendees,
-        organizerId,
-        title,
-        status,
-        _id,
-      } = payload;
-      this.startDateTime = startDateTime;
-      this._id = _id;
+      Object.assign(this,
+        _.pick(payload, [
+          'startDateTime',
+          'endDateTime',
+          'attendees',
+          'owner',
+          'timestamps',
+          '_id'
+        ])
+      );
     }
-
-    //...
   }
 
   async save() {
-    let event;
-
-    if (this._id) {
-      event = await EventModel.find();
-    } else {
-      event = await new EventModel({
-        //...
-        meta,
-      }).save();
-    }
-    return event;
+    return EventModel.findOneAndUpdate({_id: this._id}, this, {upsert:true},
+      (err, doc) => {
+        //TODO add error handlers
+        //handleError(err)
+        return doc;
+      });
   }
 
-  format() {
+  format(inputFormat) {
     return {
-      startDateTime: startDateTime.format('YYYY-MM-DD'),
-      //...
+      startDateTime: moment(this.startDateTime).format(inputFormat || DAY_FORMAT)
     };
   }
 }

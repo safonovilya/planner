@@ -43,5 +43,7 @@ const eventTemplateSchema = new mongoose.Schema({
   timestamps: true
 });
 
+//TODO create on "create, update, remove" streams to log data
+
 mongoose.model('Event', eventSchema);
 mongoose.model('EventTemplate', eventTemplateSchema);
