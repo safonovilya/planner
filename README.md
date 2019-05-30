@@ -20,13 +20,13 @@ deleteEvent(EventID); // ok|<Error>
 
 ### Issue
 
-sort out how manage access by owner|creater|accessList field
+sort out how to manage access by owner|creater|accessList field
 
 ### Schema
 
 ![Schema](./src/event/schema.png)
 
-### Cases
+### Usage
 
 ```javascript
 async () => {

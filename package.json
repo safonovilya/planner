@@ -19,7 +19,7 @@
   },
   "scripts": {
     "start": "node index.js",
-    "test": "nodemon --exec 'mocha -R min ./**/*.test.js'"
+    "test": "nodemon --exec 'mocha -R min ./src/**/*.test.js'"
   },
   "license": "ISC"
 }

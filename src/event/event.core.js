@@ -76,12 +76,17 @@ class EventCore {
   static async getEvent(id) {
     // find by id
     // build class Event
+    const rawEvent = await EventModel.findOne({ _id: id });
+    if (!rawEvent) {
+      return rawEvent;
+    }
+    return new Event(rawEvent);
   }
 
   /**
    *
-   * @param filter.startDateTime Date Required
-   * @param filter.endDateTime Date Required
+   * @param filter.startDate Date Required
+   * @param filter.endDate Date Required
    * @param filter.owner ID Required
    * @param filter.status 'active'|'inactive'|'deleted'
    * @returns {Promise<Event>}
@@ -101,7 +106,7 @@ class EventCore {
     const eventTemplates = await EventTemplateModel.find(query).lean();
     // const events = await Event.find();
 
-    const events = _.flatten(
+    let events = _.flatten(
       eventTemplates.map(eventTemplate => {
         return repeatableUnwind(eventTemplate);
       }),
@@ -149,25 +154,47 @@ class EventTemplate {
 }
 
 /**
- * update
- * format
+ * @method update
+ * @method format
  *
- * accept eventTemplate instance
+ * @param startDateTime: Date,
+ * @param endDateTime: Date,
+ * @param attendees:[]
+ * @param organizerId: ID
+ * @param title: String,
+ * @param status: String,
+ *
+ *  accept eventTemplate instance
  */
 class Event {
-  // startDateTime: Date,
-  // endDateTime: Date,
-  // attendees:[]
-  // organizerId: ID
-  // title: String,
-  // status: String,
-
   constructor(payload) {
-    if (payload instanceof EventTemplateModel) {
-      // build
+    if (
+      // payload instanceof EventTemplateModel - not working because of unwind by repeatable field
+      !payload.eventTemplateId && payload._id
+    ) {
       // startDateTime: Date,
       // endDateTime: Date,
       // by repeatable and start end time
+      const {
+        startDateTime,
+        endDateTime,
+        attendees,
+        organizerId,
+        title,
+        status,
+        repeatable,
+        _id,
+      } = payload;
+
+      this.startDateTime = startDateTime;
+      this.endDateTime = endDateTime;
+      this.endDateTime = endDateTime;
+      this.attendees = attendees;
+      this.organizerId = organizerId;
+      this.title = title;
+      this.status = status;
+      this._id = null;
+      this.eventTemplateId = _id;
     } else {
       const {
         startDateTime,
@@ -176,27 +203,42 @@ class Event {
         organizerId,
         title,
         status,
+        eventTemplateId,
         _id,
       } = payload;
       this.startDateTime = startDateTime;
+      this.endDateTime = endDateTime;
+      this.attendees = attendees;
+      this.organizerId = organizerId;
+      this.title = title;
+      this.status = status;
+      this.eventTemplateId = eventTemplateId;
       this._id = _id;
     }
 
-    //...
+    return this;
   }
 
   async save() {
-    let event;
+    const fieldsMap = {
+      startDateTime: this.startDateTime,
+      endDateTime: this.endDateTime,
+      attendees: this.attendees,
+      organizerId: this.organizerId,
+      title: this.title,
+      status: this.status,
+      eventTemplateId: this.eventTemplateId,
+    };
 
     if (this._id) {
-      event = await EventModel.find();
+      await EventModel.updateOne({ _id: this._id }, fieldsMap, {
+        upsert: true,
+      });
     } else {
-      event = await new EventModel({
-        //...
-        meta,
-      }).save();
+      const newEvent = await new EventModel(fieldsMap).save();
+      this._id = newEvent._id;
     }
-    return event;
+    return this;
   }
 
   format() {

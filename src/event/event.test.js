@@ -122,22 +122,31 @@ describe('Core Event Class', () => {
   });
 
   it('Create Object Event', async () => {
-    const event = await EventCore.create();
+    await EventCore.create({});
     const events = await EventTemplateModel.find();
     assert.equal(events.length, 1);
     return null;
   });
 
   it('get list Events', async () => {
-    const events = await EventCore.getList();
+    const events = await EventCore.getList({});
     assert.equal(events.length, 1);
     return null;
   });
   it('CoreEvent.getList should return only Event objects', async () => {
-    const events = await EventCore.getList();
+    const events = await EventCore.getList({});
     events.forEach(event => {
       assert(event instanceof Event);
     });
+  });
+  it('CoreEvent.getEvent should return Event objects', async () => {
+    const events = await EventCore.getList({});
+    events[0].title = 'save';
+    await events[0].save();
+
+    const event = await EventCore.getEvent(events[0]._id);
+    assert.ok(event !== null);
+    assert.ok(event instanceof Event);
   });
 
   it('Create Repeatable Event every hour', async () => {
@@ -172,8 +181,6 @@ describe('Core Event Class', () => {
 
     return null;
   });
-
-  xit('Core Event Methods should return only Event objects', () => {});
 });
 
 describe('Event Class', () => {
