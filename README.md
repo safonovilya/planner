@@ -13,7 +13,7 @@ getEvent(id); //<Event>
 getEvents({
   range: start - end,
   status: 'active' | 'inactive' | 'deleted',
-  owner: CalendarID,
+  // owner: CalendarID,
 }); // [<Event>]
 deleteEvent(EventID); // ok|<Error>
 ```
@@ -52,7 +52,7 @@ async () => {
   const eventList = await EventCore.getList({
     startDate: moment('2019-04-08'), // required
     endDate: moment('2019-04-22'), // required
-    owner: user.id, // optional
+    // owner: user.id, // optional
     accessID: user.id | profile.id | role.id, // optional
   });
   console.log(eventList.length); // 6

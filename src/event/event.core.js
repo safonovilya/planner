@@ -1,9 +1,10 @@
+const _ = require('lodash');
 const EventTemplateModel = require('mongoose').model('EventTemplate');
 const EventModel = require('mongoose').model('Event');
 const unwind = require('lodash-unwind')();
-const _ = require('lodash');
+const moment = require('moment');
 
-const DAY_FORMAT = require('../config/constants').DAY_FORMAT;
+const DAY_TIME_FORMAT = require('../config/constants').DAY_TIME_FORMAT;
 
 /**
  * @param eventTemplate <EventTemplate>
@@ -55,17 +56,19 @@ class EventCore {
       status,
       location,
       repeatable,
+      duration,
     } = payload || {};
     const event = new EventTemplateModel({
       title,
       organizerId,
       startTime,
       endTime,
-      startDate,
-      endDate,
+      startDate: moment(startDate).startOf('day'),
+      endDate: moment(endDate).endOf('day'),
       status,
       location,
       repeatable,
+      duration: duration || endTime - startTime,
     });
     await event.save();
     return true;
@@ -78,7 +81,9 @@ class EventCore {
   static async getEvent(id) {
     // find by id
     // build class Event
-    const rawEvent = await EventModel.findOne({ _id: id });
+    const rawEvent = await EventModel.findOne({ _id: id }).populate(
+      'eventTemplateId',
+    );
     if (!rawEvent) {
       return rawEvent;
     }
@@ -89,19 +94,26 @@ class EventCore {
    *
    * @param filter.startDate Date Required
    * @param filter.endDate Date Required
-   * @param filter.owner ID Required
+   * @param filter.eventTemplateId ID Required
    * @param filter.status 'active'|'inactive'|'deleted'
    * @returns {Promise<Event>}
    */
   static async getList(filter) {
-    const { startDate, endDate, owner, status } = filter || {};
+    let { startDate, endDate, eventTemplateId, status } = filter || {};
 
-    //TODO: max diff in startDate, endDate 3 months
+    if (!startDate) {
+      startDate = moment().startOf('day');
+    }
+    if (!endDate) {
+      endDate = moment()
+        .endOf('day')
+        .add(3, 'month');
+    }
 
     const query = {
       startDate: { $gte: startDate },
       endDate: { $lte: endDate },
-      owner,
+      eventTemplateId,
     };
     status ? (query.status = status) : null;
 
@@ -170,36 +182,44 @@ class EventTemplate {
  */
 class Event {
   constructor(payload) {
+    // Event Template Obj
     if (
       // payload instanceof EventTemplateModel - not working because of unwind by repeatable field
-      !payload.eventTemplateId && payload._id
+      !payload.eventTemplateId &&
+      payload._id
     ) {
       // startDateTime: Date,
       // endDateTime: Date,
       // by repeatable and start end time
-      const {
-        startDate,
-        endDate,
-        repeatable,
-        _id,
-      } = payload;
-      Object.assign(this,
+      const { startDate, endDate, repeatable, duration, _id } = payload;
+      Object.assign(
+        this,
         _.pick(payload, [
-          'attendees',
           'organizerId',
           'title',
           'status',
           'eventTemplateId',
-          '_id'
-        ])
+          '_id',
+          'duration',
+        ]),
       );
 
-      this.startDateTime = startDate; // + repeatable
-      this.endDateTime = endDate; // + repeatable
+      const timeShifts = _.toPairs(repeatable).map(o => {
+        o[1] = _.keys(o[1])[0];
+        return o;
+      });
+      this.startDateTime = moment(startDate);
+      timeShifts.forEach(el => {
+        this.startDateTime = this.startDateTime.add(el[1], el[0]);
+      });
+      this.endDateTime = moment(this.startDateTime);
+      this.endDateTime.add(duration, 'minutes'); // + repeatable
       this._id = null;
       this.eventTemplateId = _id;
     } else {
-      Object.assign(this,
+      // Event Obj
+      Object.assign(
+        this,
         _.pick(payload, [
           'startDateTime',
           'endDateTime',
@@ -208,9 +228,22 @@ class Event {
           'title',
           'status',
           'eventTemplateId',
-          '_id'
-        ])
+          '_id',
+        ]),
       );
+
+      Object.assign(
+        this,
+        _.pick(this.eventTemplateId, [
+          'organizerId',
+          'title',
+          'status',
+          'eventTemplateId',
+          '_id',
+          'duration',
+        ]),
+      );
+      this.eventTemplateId = this.eventTemplateId._id;
     }
 
     return this;
@@ -238,9 +271,20 @@ class Event {
     return this;
   }
 
-  format(inputFormat) {
+  format(options) {
+    const { dateTimeFormat } = options || {};
     return {
-      startDateTime: moment(this.startDateTime).format(inputFormat || DAY_FORMAT)
+      startDateTime: moment(this.startDateTime).format(
+        dateTimeFormat || DAY_TIME_FORMAT,
+      ),
+      endDateTime: moment(this.endDateTime).format(
+        dateTimeFormat || DAY_TIME_FORMAT,
+      ),
+      attendees: this.attendees,
+      organizerId: this.organizerId,
+      title: this.title,
+      status: this.status,
+      eventTemplateId: this.eventTemplateId,
     };
   }
 }

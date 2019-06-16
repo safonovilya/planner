@@ -44,14 +44,23 @@ const mockEventTemplate = {
   attendees: ['user.id', 'user1.id'],
 };*/
 
+async function cleanEventCollection() {
+  try {
+    return await EventModel.collection.drop();
+  } catch (e) {
+    return e;
+  }
+}
+async function cleanEventTemplateCollection() {
+  try {
+    return await EventTemplateModel.collection.drop();
+  } catch (e) {
+    return e;
+  }
+}
+
 describe('Create Event Model Object', () => {
-  before(async () => {
-    try {
-      return await EventModel.collection.drop();
-    } catch (e) {
-      return e;
-    }
-  });
+  before(cleanEventCollection);
 
   it('new Event', done => {
     const event = new EventModel();
@@ -62,18 +71,12 @@ describe('Create Event Model Object', () => {
 
   it('get Events', async () => {
     const events = await EventModel.find();
-    assert.equal(events.length, 1);
+    assert.strictEqual(events.length, 1);
   });
 });
 
 describe('Create EventTemplate Model Object', () => {
-  before(async () => {
-    try {
-      return await EventTemplateModel.collection.drop();
-    } catch (e) {
-      return e;
-    }
-  });
+  before(cleanEventTemplateCollection);
 
   it('new EventTemplate', () => {
     const event = new EventTemplateModel(mockEventTemplate);
@@ -96,7 +99,7 @@ describe('Create EventTemplate Model Object', () => {
 
   it('get EventTemplate', async () => {
     const events = await EventTemplateModel.find();
-    assert.equal(events.length, 1);
+    assert.strictEqual(events.length, 1);
     const event = events[0];
     expect(event.toObject()).to.have.property('startDate');
     expect(event.toObject()).to.have.property('startTime');
@@ -113,24 +116,20 @@ describe('Create EventTemplate Model Object', () => {
 
 describe('Core Event Class', () => {
   before(async () => {
-    try {
-      await EventTemplateModel.collection.drop();
-      return await EventModel.collection.drop();
-    } catch (e) {
-      return e;
-    }
+    await cleanEventTemplateCollection();
+    await cleanEventCollection();
   });
 
   it('Create Object Event', async () => {
     await EventCore.create({});
     const events = await EventTemplateModel.find();
-    assert.equal(events.length, 1);
+    assert.strictEqual(events.length, 1);
     return null;
   });
 
   it('get list Events', async () => {
     const events = await EventCore.getList({});
-    assert.equal(events.length, 1);
+    assert.strictEqual(events.length, 1);
     return null;
   });
   it('CoreEvent.getList should return only Event objects', async () => {
@@ -139,14 +138,16 @@ describe('Core Event Class', () => {
       assert(event instanceof Event);
     });
   });
-  it('CoreEvent.getEvent should return Event objects', async () => {
+  it('On change Event instance it create document in Event collection', async () => {
     const events = await EventCore.getList({});
-    events[0].title = 'save';
+    events[0].attendees = ['Ilya'];
     await events[0].save();
 
     const event = await EventCore.getEvent(events[0]._id);
     assert.ok(event !== null);
     assert.ok(event instanceof Event);
+    const eventDocs = await EventModel.find().exec();
+    console.log(eventDocs);
   });
 
   it('Create Repeatable Event every hour', async () => {
@@ -160,31 +161,40 @@ describe('Core Event Class', () => {
 
     await EventCore.create({
       title: 'every hour',
-      startTime: 0,
-      endTime: 30,
-      startDate: start,
-      endDate: end,
+      startTime: 0, // in minutes
+      endTime: 30, // in minutes
+      startDate: start, // will round to start of the day
+      endDate: end, // will round to end of the day
       repeatable: {
         hour,
       },
     });
     const events = await EventCore.getList({
-      startDate: start,
-      endDate: end,
+      startDate: moment(start).startOf('day'),
+      endDate: moment(end).endOf('day'),
     });
-    assert.equal(events.length, 24);
+    assert.strictEqual(events.length, 24);
 
     const eventTemplate = await EventTemplateModel.findOne({
       title: 'every hour',
     });
-    assert.equal(eventTemplate.repeatable.hour.length, 24);
+    assert.strictEqual(eventTemplate.repeatable.hour.length, 24);
 
     return null;
   });
 });
 
 describe('Event Class', () => {
-  xit('Should have format method');
+  it('Should have format method', async ()=> {
+    const start = today;
+    const end = tomorrow;
+    const events = await EventCore.getList({
+      startDate: moment(start).startOf('day'),
+      endDate: moment(end).endOf('day'),
+    });
+
+    console.log(events[0].format());
+  });
   xit('Should have able to created by instance of EventTemplate obj');
 });
 

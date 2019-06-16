@@ -4,7 +4,7 @@ const eventSchema = new mongoose.Schema({
   startDateTime: Date, // 2019-04-08 17:50
   endDateTime: Date, // 2019-04-08 19:40
   attendees: [mongoose.SchemaTypes.Mixed],
-  owner: {
+  eventTemplateId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'EventTemplate',
   },
